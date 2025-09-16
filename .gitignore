@@ -12,3 +12,5 @@ dist/
 *.env
 .env.local
 .env.example
+
+frontend/.next/
