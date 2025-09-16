@@ -222,7 +222,7 @@ async def entrypoint(job_ctx: JobContext):
         
         # Keep the agent running
         while True:
-            await asyncio.sleep(5)
+            await asyncio.sleep(300)
             if bot.local_participant:
                 print("💚 Agent status: Online and ready")
             else:

@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ai-agent-backend
+    environment:
+      - LIVEKIT_URL=${LIVEKIT_URL}
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/data
+    networks:
+      - ai-agent-network
+    restart: unless-stopped
+    depends_on:
+      - frontend
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ai-agent-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - LIVEKIT_URL=${LIVEKIT_URL}
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      - NODE_ENV=production
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - ai-agent-network
+    restart: unless-stopped
+
+volumes:
+  backend_data:
+    driver: local
+
+networks:
+  ai-agent-network:
+    driver: bridge

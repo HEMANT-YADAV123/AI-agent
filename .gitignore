@@ -14,3 +14,13 @@ dist/
 .env.example
 
 frontend/.next/
+
+
+# Docker
+.dockerignore
+Dockerfile.alternative
+Dockerfile.staged
+Dockerfile.multistage
+docker-compose.override.yml
+docker-compose.prod.yml
+docker-compose.pytorch.yml
