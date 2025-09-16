@@ -1,1 +1,7 @@
 .env.example
+.env.local
+.env
+.node_modules
+.venv
+._pycache_
+.package-lock.json

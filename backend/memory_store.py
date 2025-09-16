@@ -1,58 +1,51 @@
-import chromadb
-from sentence_transformers import SentenceTransformer
+# memory_store.py
 import json
-from datetime import datetime
 import os
+from datetime import datetime
 
-class MemoryStore:
+class SimpleMemoryStore:
     def __init__(self):
-        self.client = chromadb.Client()
-        self.collection = self.client.create_collection(
-            name="user_memories",
-            get_or_create=True
-        )
-        self.encoder = SentenceTransformer('all-MiniLM-L6-v2')
+        self.memory_file = "user_memories.json"
+        self.memories = self._load_memories()
+    
+    def _load_memories(self):
+        """Load memories from JSON file"""
+        if os.path.exists(self.memory_file):
+            try:
+                with open(self.memory_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                return {}
+        return {}
+    
+    def save_memories(self):
+        """Save memories to JSON file"""
+        with open(self.memory_file, 'w', encoding='utf-8') as f:
+            json.dump(self.memories, f, indent=2, ensure_ascii=False)
     
     def add_memory(self, username: str, message: str, response: str):
         """Add a new memory to the store"""
-        memory_text = f"User {username} said: {message}. Assistant responded: {response}"
-        embedding = self.encoder.encode([memory_text])[0].tolist()
+        if username not in self.memories:
+            self.memories[username] = []
         
-        self.collection.add(
-            documents=[memory_text],
-            embeddings=[embedding],
-            metadatas=[{
-                "username": username,
-                "timestamp": datetime.now().isoformat(),
-                "user_message": message,
-                "assistant_response": response
-            }],
-            ids=[f"{username}_{datetime.now().timestamp()}"]
-        )
+        memory_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "user_message": message,
+            "assistant_response": response,
+        }
+        
+        self.memories[username].append(memory_entry)
+        
+        # Keep only last 50 memories per user to avoid memory bloat
+        if len(self.memories[username]) > 50:
+            self.memories[username] = self.memories[username][-50:]
+        
+        self.save_memories()
     
     def get_relevant_memories(self, username: str, current_message: str, limit: int = 3):
         """Retrieve relevant memories for context"""
-        if self.collection.count() == 0:
+        if username not in self.memories or not self.memories[username]:
             return []
-            
-        query_embedding = self.encoder.encode([current_message])[0].tolist()
         
-        results = self.collection.query(
-            query_embeddings=[query_embedding],
-            n_results=min(limit, self.collection.count()),
-            where={"username": username}
-        )
-        
-        if not results['documents'] or not results['documents'][0]:
-            return []
-            
-        memories = []
-        for doc, metadata in zip(results['documents'][0], results['metadatas'][0]):
-            memories.append({
-                'content': doc,
-                'timestamp': metadata['timestamp'],
-                'user_message': metadata['user_message'],
-                'assistant_response': metadata['assistant_response']
-            })
-        
-        return memories
+        # Return most recent memories (simple approach)
+        return self.memories[username][-limit:]
