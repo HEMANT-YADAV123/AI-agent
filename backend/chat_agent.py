@@ -34,14 +34,14 @@ class SimpleMemoryStore:
         
         memory_entry = {
             "timestamp": datetime.now().isoformat(),
-            "user_message": message[:500],  # Limit message length to prevent memory bloat
-            "assistant_response": response[:1000],  # Limit response length
+            "user_message": message[:500],  # limit message length to prevent memory stack is full error
+            "assistant_response": response[:1000],  # limit response length
             "created_at": current_time
         }
         
         self.memories[username].append(memory_entry)
         
-        # Keep only recent memories per user
+        # keep only recent memories per user for better recent answer.
         if len(self.memories[username]) > self.max_memories:
             self.memories[username] = self.memories[username][-self.max_memories:]
         
@@ -66,7 +66,7 @@ class SimpleMemoryStore:
         if username not in self.memories or not self.memories[username]:
             return []
         
-        # Simple keyword matching for relevance (can be enhanced with embeddings)
+        # simple keyword matching for relevance
         message_words = set(current_message.lower().split())
         scored_memories = []
         
@@ -75,7 +75,7 @@ class SimpleMemoryStore:
             overlap = len(message_words.intersection(memory_words))
             scored_memories.append((overlap, memory))
         
-        # Sort by relevance score and recency
+        # sort by relevance score and recency
         scored_memories.sort(key=lambda x: (x[0], x[1].get('created_at', 0)), reverse=True)
         
         return [memory for score, memory in scored_memories[:limit]]
@@ -91,16 +91,16 @@ class ChatAgent:
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY not found in environment variables")
         
-        # Initialize with retry logic
+        # retry logic
         self.model = None
         self.memory_store = SimpleMemoryStore()
         self._last_request_time = 0
-        self._min_request_interval = 0.1  # Rate limiting: min 100ms between requests
+        self._min_request_interval = 0.1  # rate limiting: min 100ms between requests
         self._max_retries = 3
         
         self._initialize_model()
         
-        # Response caching for identical queries (simple)
+        # response caching for identical queries (simple)
         self._response_cache = {}
         self._cache_max_size = 100
         self._cache_ttl = 300  # 5 minutes
@@ -113,12 +113,12 @@ class ChatAgent:
             try:
                 genai.configure(api_key=self.api_key)
                 
-                # Use more efficient model configuration
+                # use more efficient model configuration
                 generation_config = genai.types.GenerationConfig(
                     temperature=0.7,
                     top_p=0.9,
                     top_k=40,
-                    max_output_tokens=512,  # Limit response length for faster generation
+                    max_output_tokens=512,  # limit response length for faster generation
                     stop_sequences=None,
                 )
                 
@@ -133,7 +133,7 @@ class ChatAgent:
             except Exception as e:
                 logger.warning(f"Model initialization attempt {attempt + 1} failed: {e}")
                 if attempt < self._max_retries - 1:
-                    time.sleep(2 ** attempt)  # Exponential backoff
+                    time.sleep(2 ** attempt)  # exponential backoff
                 else:
                     raise
     
@@ -152,12 +152,12 @@ class ChatAgent:
         for key in expired_keys:
             del self._response_cache[key]
         
-        # Limit cache size
+        # limit cache size
         if len(self._response_cache) > self._cache_max_size:
-            # Remove oldest entries
+            # remove oldest entries
             sorted_items = sorted(
                 self._response_cache.items(), 
-                key=lambda x: x[1][1]  # Sort by timestamp
+                key=lambda x: x[1][1]  # sort by timestamp
             )
             
             for key, _ in sorted_items[:len(sorted_items) - self._cache_max_size]:
@@ -166,12 +166,12 @@ class ChatAgent:
     def generate_response(self, username: str, message: str) -> str:
         """Generate a contextual response using memory with caching and rate limiting"""
         try:
-            # Clean message input
+            # clean message input
             message = message.strip()
             if not message:
                 return "I didn't receive a message. Could you please try again?"
             
-            # Check cache first
+            # check cache first
             cache_key = self._get_cache_key(username, message)
             current_time = time.time()
             
@@ -181,15 +181,15 @@ class ChatAgent:
                     logger.debug(f"Cache hit for {username}")
                     return cached_response
             
-            # Rate limiting
+            # rate limiting
             time_since_last = current_time - self._last_request_time
             if time_since_last < self._min_request_interval:
                 time.sleep(self._min_request_interval - time_since_last)
             
-            # Get relevant memories efficiently
+            # get relevant memories efficiently
             memories = self.memory_store.get_relevant_memories(username, message, limit=2)  # Reduce to 2 for faster processing
             
-            # Build optimized context
+            # build optimized context
             context_parts = [
                 f"You are a helpful AI assistant talking to {username}.",
                 "Keep responses concise, friendly, and under 200 words."

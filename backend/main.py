@@ -7,7 +7,7 @@ from livekit import rtc
 from dotenv import load_dotenv
 import logging
 
-# Set up proper logging
+# setted up proper logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -41,7 +41,7 @@ class ChatBot:
         self.agent = None
         self.local_participant = None
         self._shutdown_flag = False
-        self._message_queue = asyncio.Queue(maxsize=100)  # Prevent memory buildup
+        self._message_queue = asyncio.Queue(maxsize=100)  # prevent memory buildup
         self._message_processor = None
         
     async def initialize_agent(self):
@@ -86,7 +86,7 @@ class ChatBot:
             logger.debug(f"WebSocket URL: {ws_url}")
             logger.debug(f"Token generated: {bool(token)}")
             
-            # Connect to the room
+            # connecting to the room
             await self.room.connect(ws_url, token)
             self.local_participant = self.room.local_participant
             
@@ -123,7 +123,7 @@ class ChatBot:
                     logger.warning(f"Unexpected data_received arguments: {len(args)} args")
                     return
                 
-                # Skip empty messages early
+                # skip empty messages early
                 if not message.strip():
                     return
                     
