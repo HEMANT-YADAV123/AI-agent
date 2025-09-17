@@ -1,7 +1,7 @@
 # 🧠 AI Chat Agent with LiveKit & Contextual Memory
 - A real-time AI chat agent that remembers past conversations, built with LiveKit, Gemini API(as the Open AI key was paid so I used gemini, we can get better if we use any other key), and a lightweight JSON-based memory store(this can be replaced with any vectorized database easily and speedly).
   
-- ✅ Implements the core objectives of the Attack Capital Assignment.
+- ✅ Implements the core objectives of the Assignment.
 - ⚡ **Enhanced with performance optimizations and reliability improvements**
 <br>
   
@@ -138,8 +138,7 @@ docker-compose up --build
 <br>
 
 ## 📽️ Demo
-Include your Loom or YouTube demo link here.
-Example: [Demo Video](your-demo-link-here)
+Demo Video:- (https://www.loom.com/share/8731a2c7ae04494ead027df6310faae4?sid=1f88013b-0868-4c3a-af2b-c93ed36db610)
 <br>
 
 ## 🧰 Development Notes
