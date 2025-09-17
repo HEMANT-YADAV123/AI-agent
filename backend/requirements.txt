@@ -5,3 +5,4 @@ sentence-transformers==2.2.2
 numpy==1.24.3
 json5==0.9.14
 asyncio
+PyJWT==2.8.0
